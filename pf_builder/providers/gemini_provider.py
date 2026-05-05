@@ -71,9 +71,22 @@ class GeminiProvider(Provider):
             )
             resp.raise_for_status()
         except httpx.HTTPStatusError as e:
+            status = e.response.status_code
+            if status == 429:
+                # Free-tier quota hit. The orchestrator paces requests within
+                # one build, so a 429 here means cumulative usage today has
+                # exceeded the daily / per-minute quota across builds.
+                raise RuntimeError(
+                    "Gemini free-tier quota exceeded. Either:\n"
+                    "  1. Wait a minute (per-minute limit) and retry, or\n"
+                    "  2. Set PF_GEMINI_MODEL=gemini-2.5-flash-lite "
+                    "(higher free quota), or\n"
+                    "  3. Enable billing on your Google Cloud project for "
+                    "production-grade limits.\n"
+                    f"Raw API response: {e.response.text[:300]}"
+                ) from e
             raise RuntimeError(
-                f"Gemini API error {e.response.status_code}: "
-                f"{e.response.text[:400]}"
+                f"Gemini API error {status}: {e.response.text[:400]}"
             ) from e
 
         body = resp.json()

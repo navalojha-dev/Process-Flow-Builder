@@ -2,9 +2,24 @@
 
 Runs the 5 stages in order, assembles the flow.json, and hands off to
 the bundle writer. Each stage is timed and its token usage recorded.
+
+Rate-limit pacing
+-----------------
+On free-tier LLM accounts (Gemini AI Studio, Anthropic free trial), the
+per-minute request quota is small (~15 RPM on Gemini Flash). Bursting 4
+stage requests in ~10s reliably trips a 429.
+
+We pace stages by sleeping a fixed gap between requests. With a 5s gap:
+
+    full mode: 4 requests over ~50s wall time = ~5 RPM (safe).
+    flow_only: 2 requests over ~17s wall time = ~7 RPM (safe).
+
+The gap is configurable via env var `PF_INTER_STAGE_DELAY_SECONDS`
+(default 5). Set to 0 for paid tiers where bursting is fine.
 """
 from __future__ import annotations
 
+import os
 import re
 import time
 from pathlib import Path
@@ -15,9 +30,30 @@ from .stages import ai_use_cases, process_flow, process_mapping, profile, valida
 
 ProgressFn = Callable[[str], None]
 
+# How long to wait between stage LLM calls so we don't burst over the
+# free-tier per-minute quota. Tunable via env; default 5s.
+DEFAULT_INTER_STAGE_DELAY = float(
+    os.environ.get("PF_INTER_STAGE_DELAY_SECONDS", "5")
+)
+
 
 def _noop(_msg: str) -> None:
     pass
+
+
+def _pace(progress: ProgressFn, seconds: float, stage_label: str) -> None:
+    """Sleep with a visible progress message — 1s ticks so the UI stays alive."""
+    if seconds <= 0:
+        return
+    remaining = float(seconds)
+    while remaining > 0:
+        progress(
+            f"⏱  Pacing {remaining:.0f}s before {stage_label} "
+            f"(staying under free-tier rate limit)…"
+        )
+        chunk = min(1.0, remaining)
+        time.sleep(chunk)
+        remaining -= chunk
 
 
 def _split_assumptions(raw_text: str) -> list[str]:
@@ -51,6 +87,7 @@ def run_pipeline(
     runs_root: Path = Path("outputs/runs"),
     progress: ProgressFn = _noop,
     mode: str = "full",
+    inter_stage_delay_seconds: float | None = None,
 ) -> Path:
     """End-to-end run. Returns the run directory.
 
@@ -60,9 +97,20 @@ def run_pipeline(
                       (just the Process Flow). Skips the As-Is/To-Be/Impact
                       matrix and the AgentFleet card grid.
                       Faster (~10-15s saved) and cheaper (~50% fewer tokens).
+
+    `inter_stage_delay_seconds`:
+      - None (default) → use `PF_INTER_STAGE_DELAY_SECONDS` env var, then 5.
+      - 0              → no pacing (bursts all stages — only safe on paid tiers).
+      - >0             → sleep this many seconds between stage LLM calls.
     """
     if mode not in ("full", "flow_only"):
         raise ValueError(f"mode must be 'full' or 'flow_only', got {mode!r}")
+
+    pace_seconds = (
+        DEFAULT_INTER_STAGE_DELAY
+        if inter_stage_delay_seconds is None
+        else float(inter_stage_delay_seconds)
+    )
 
     run = RunRecord(
         user=user,
@@ -93,6 +141,8 @@ def run_pipeline(
     profile_data = s1.data
     run.vertical = profile_data.get("vertical", "other")
 
+    _pace(progress, pace_seconds, "Stage 2 · Process Flow")
+
     # ---- Stage 2: Process Flow -------------------------------------------
     progress("Stage 2/5 · Designing process flow…")
     t0 = time.monotonic()
@@ -109,6 +159,8 @@ def run_pipeline(
     flow_block = s2.data
 
     if mode == "full":
+        _pace(progress, pace_seconds, "Stage 3 · Process Mapping")
+
         # ---- Stage 3: Process Mapping ------------------------------------
         progress("Stage 3/5 · Writing As-Is / To-Be / Impact matrix…")
         t0 = time.monotonic()
@@ -127,6 +179,8 @@ def run_pipeline(
         )
         run.notes.extend(_split_assumptions(s3.raw_text))
         mapping_block = s3.data
+
+        _pace(progress, pace_seconds, "Stage 4 · AgentFleet")
 
         # ---- Stage 4: AgentFleet -----------------------------------------
         progress("Stage 4/5 · Curating AgentFleet…")
