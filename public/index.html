@@ -85,6 +85,25 @@
       gap: 1rem;
     }
     .row > div { margin: 0; }
+    .modes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+    }
+    .mode {
+      display: flex;
+      gap: 0.6rem;
+      padding: 0.7rem 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: normal;
+      margin: 0;
+      align-items: flex-start;
+    }
+    .mode:has(input:checked) { border-color: var(--blue); background: #EAF2FB; }
+    .mode input[type="radio"] { margin-top: 4px; }
+    .mode strong { font-size: 0.92rem; }
     #status {
       margin-top: 1.25rem;
       padding: 0.85rem 1rem;
@@ -124,6 +143,24 @@
 
   <main>
     <form id="form">
+      <label>What do you want?</label>
+      <div class="modes">
+        <label class="mode">
+          <input type="radio" name="mode" value="full" checked />
+          <div>
+            <strong>Whole deck (3 slides)</strong>
+            <div class="hint">Process Flow + As-Is/To-Be/Impact + AgentFleet · ~30-45s</div>
+          </div>
+        </label>
+        <label class="mode">
+          <input type="radio" name="mode" value="flow_only" />
+          <div>
+            <strong>Process Flow only (1 slide)</strong>
+            <div class="hint">Just the row-and-step diagram · ~10-15s · ~50% cheaper</div>
+          </div>
+        </label>
+      </div>
+
       <div class="row">
         <div>
           <label for="client">Client name</label>
@@ -175,17 +212,21 @@
       const client = document.getElementById("client").value.trim();
       const vertical = document.getElementById("vertical").value;
       const transcript = document.getElementById("transcript").value.trim();
+      const mode = document.querySelector('input[name="mode"]:checked').value;
       if (!client || !transcript) return;
 
       submitBtn.disabled = true;
       const startedAt = Date.now();
-      setStatus("info", `<span class="progress"></span> Building deck — running 5 agent stages, ~30-45s…`);
+      const stagesMsg = mode === "flow_only"
+        ? "running 2 agent stages, ~10-15s…"
+        : "running 4 agent stages, ~30-45s…";
+      setStatus("info", `<span class="progress"></span> Building deck — ${stagesMsg}`);
 
       try {
         const resp = await fetch("/api/build", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ client, vertical, transcript }),
+          body: JSON.stringify({ client, vertical, transcript, mode }),
         });
         if (!resp.ok) {
           const err = await resp.text();

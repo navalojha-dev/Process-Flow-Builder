@@ -84,6 +84,17 @@ if not os.environ.get("GEMINI_API_KEY") and not os.environ.get("ANTHROPIC_API_KE
 # Form
 # ---------------------------------------------------------------------------
 
+mode_label = st.radio(
+    "What do you want?",
+    options=[
+        "Whole deck (3 slides) — Process Flow + As-Is/To-Be/Impact + AgentFleet",
+        "Process Flow only (1 slide) — faster, ~50% cheaper",
+    ],
+    index=0,
+    help="The whole deck takes ~30-45s and uses 4 LLM calls. Process flow only takes ~10-15s and uses 2.",
+)
+mode = "flow_only" if mode_label.startswith("Process Flow only") else "full"
+
 col1, col2 = st.columns([2, 1])
 with col1:
     client_name = st.text_input(
@@ -132,14 +143,22 @@ if build:
     log_lines: list[str] = []
     log_box = st.empty()
 
-    stages = [
-        ("Stage 1/5 · Extracting client profile…", 0.10),
-        ("Stage 2/5 · Designing process flow…", 0.30),
-        ("Stage 3/5 · Writing As-Is / To-Be / Impact matrix…", 0.55),
-        ("Stage 4/5 · Curating AgentFleet…", 0.80),
-        ("Stage 5/5 · Validating + repairing…", 0.92),
-        ("Rendering deck…", 0.98),
-    ]
+    if mode == "full":
+        stages = [
+            ("Stage 1/5 · Extracting client profile…", 0.10),
+            ("Stage 2/5 · Designing process flow…", 0.30),
+            ("Stage 3/5 · Writing As-Is / To-Be / Impact matrix…", 0.55),
+            ("Stage 4/5 · Curating AgentFleet…", 0.80),
+            ("Stage 5/5 · Validating + repairing…", 0.92),
+            ("Rendering deck…", 0.98),
+        ]
+    else:
+        stages = [
+            ("Stage 1/3 · Extracting client profile…", 0.20),
+            ("Stage 2/3 · Designing process flow…", 0.65),
+            ("Stage 3/3 · Validating + repairing…", 0.90),
+            ("Rendering deck…", 0.98),
+        ]
 
     def _on_progress(msg: str) -> None:
         log_lines.append(msg)
@@ -160,6 +179,7 @@ if build:
                 user="streamlit-web",
                 runs_root=runs_root,
                 progress=_on_progress,
+                mode=mode,
             )
             pptx_path = next(run_dir.glob("*.pptx"), None)
             flow_path = run_dir / "flow.json"

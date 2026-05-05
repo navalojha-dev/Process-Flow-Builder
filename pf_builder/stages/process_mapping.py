@@ -13,28 +13,31 @@ from ..llm import StageResult, ask_for_json
 
 SYSTEM = """You write the As-Is / To-Be / Impact matrix for slide 2 of a Shipsy client deck.
 
-Output ONLY a JSON array inside a fenced ```json block. After the block you may write 1-5 lines of "notes:" — one per line — flagging anything you assumed or where the transcript was thin.
+OUTPUT FORMAT (strict — no exceptions):
+- Output a single JSON array. The array contains 4 to 7 elements.
+- Each element MUST be a JSON OBJECT with exactly these four fields:
+    "process" (string),
+    "as_is"  (array of 2-5 short bullet strings),
+    "to_be"  (array of 2-5 short bullet strings),
+    "impact" (array of 2-5 short bullet strings)
+- DO NOT wrap in an outer object. DO NOT output a list of strings. DO NOT include any other text.
 
-EACH MATRIX ROW corresponds to ONE business process this client cares about. The matrix is the place to make the SE's case to a buyer: pain → solution → outcome. Be concrete and grounded in the transcript.
-
-RULES:
-- 4-7 rows total.
-- Per row: 2-5 bullets in each of as_is, to_be, impact.
-- Bullets are short — one sentence, ideally < 100 chars.
-- as_is = pain in their CURRENT stack. Use signals from the transcript (tools they use, manual workarounds, missing visibility).
-- to_be = how Shipsy solves it. Cite capability ids in [brackets] where relevant — e.g. "[routing-engine] handles 200+ constraints natively".
-- impact = business outcome. Numbers if the transcript has them; qualitative otherwise.
-- Order rows by buyer relevance — biggest pain first.
-
-OUTPUT JSON SHAPE:
+CONCRETE EXAMPLE of valid output (this exact shape, with your own values):
 [
   {
-    "process": "<name of the business process>",
-    "as_is":   ["<bullet>", "<bullet>", ...],
-    "to_be":   ["<bullet>", "<bullet>", ...],
-    "impact":  ["<bullet>", "<bullet>", ...]
+    "process": "Delivery Plan Optimization",
+    "as_is": ["12 planners spend 3-4 hrs/day in Roadnet per DC", "Excel macro for holds/returns then re-imported"],
+    "to_be": ["[routing-engine] handles 200+ constraints natively (Ramadan, school, cameras)", "Native order selection / holds / returns — no Excel"],
+    "impact": ["Planner effort drops sharply (3-4 hrs → ~1 hr per DC)", "Trucks/day reduce 200 → 180-190 at same SLA window"]
   }
 ]
+
+CONTENT RULES:
+- Each row corresponds to ONE business process this client cares about. Order rows by buyer relevance — biggest pain first.
+- Bullets are short — one sentence, ideally < 100 chars.
+- as_is = pain in CURRENT stack. Use transcript signals (tools they use, manual workarounds, missing visibility).
+- to_be = how Shipsy solves it. Cite capability ids in [brackets] where relevant.
+- impact = business outcome. Numbers if the transcript has them; qualitative otherwise.
 
 CAPABILITIES_PLACEHOLDER
 

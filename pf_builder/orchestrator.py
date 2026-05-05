@@ -50,13 +50,25 @@ def run_pipeline(
     user: str = "unknown",
     runs_root: Path = Path("outputs/runs"),
     progress: ProgressFn = _noop,
+    mode: str = "full",
 ) -> Path:
-    """End-to-end run. Returns the run directory."""
+    """End-to-end run. Returns the run directory.
+
+    `mode`:
+      - "full"      — run all 5 stages, produce a 3-slide deck (default).
+      - "flow_only" — run stages 1, 2, 5 only. Produce a 1-slide deck
+                      (just the Process Flow). Skips the As-Is/To-Be/Impact
+                      matrix and the AgentFleet card grid.
+                      Faster (~10-15s saved) and cheaper (~50% fewer tokens).
+    """
+    if mode not in ("full", "flow_only"):
+        raise ValueError(f"mode must be 'full' or 'flow_only', got {mode!r}")
+
     run = RunRecord(
         user=user,
         client_name=client_name,
         vertical="other",  # filled in after stage 1
-        mode="full",
+        mode=mode,
         flow={},
     )
 
@@ -96,44 +108,51 @@ def run_pipeline(
     run.notes.extend(_split_assumptions(s2.raw_text))
     flow_block = s2.data
 
-    # ---- Stage 3: Process Mapping ----------------------------------------
-    progress("Stage 3/5 · Writing As-Is / To-Be / Impact matrix…")
-    t0 = time.monotonic()
-    s3 = process_mapping.run(
-        profile=profile_data,
-        process_flow=flow_block,
-        transcript=transcript,
-    )
-    run.stages.append(
-        StageStat(
-            name="process_mapping",
-            input_tokens=s3.input_tokens,
-            output_tokens=s3.output_tokens,
-            duration_ms=int((time.monotonic() - t0) * 1000),
+    if mode == "full":
+        # ---- Stage 3: Process Mapping ------------------------------------
+        progress("Stage 3/5 · Writing As-Is / To-Be / Impact matrix…")
+        t0 = time.monotonic()
+        s3 = process_mapping.run(
+            profile=profile_data,
+            process_flow=flow_block,
+            transcript=transcript,
         )
-    )
-    run.notes.extend(_split_assumptions(s3.raw_text))
-    mapping_block = s3.data
+        run.stages.append(
+            StageStat(
+                name="process_mapping",
+                input_tokens=s3.input_tokens,
+                output_tokens=s3.output_tokens,
+                duration_ms=int((time.monotonic() - t0) * 1000),
+            )
+        )
+        run.notes.extend(_split_assumptions(s3.raw_text))
+        mapping_block = s3.data
 
-    # ---- Stage 4: AgentFleet ---------------------------------------------
-    progress("Stage 4/5 · Curating AgentFleet…")
-    t0 = time.monotonic()
-    s4 = ai_use_cases.run(
-        profile=profile_data,
-        process_flow=flow_block,
-        process_mapping=mapping_block,
-        transcript=transcript,
-    )
-    run.stages.append(
-        StageStat(
-            name="ai_use_cases",
-            input_tokens=s4.input_tokens,
-            output_tokens=s4.output_tokens,
-            duration_ms=int((time.monotonic() - t0) * 1000),
+        # ---- Stage 4: AgentFleet -----------------------------------------
+        progress("Stage 4/5 · Curating AgentFleet…")
+        t0 = time.monotonic()
+        s4 = ai_use_cases.run(
+            profile=profile_data,
+            process_flow=flow_block,
+            process_mapping=mapping_block,
+            transcript=transcript,
         )
-    )
-    run.notes.extend(_split_assumptions(s4.raw_text))
-    agents_block = s4.data
+        run.stages.append(
+            StageStat(
+                name="ai_use_cases",
+                input_tokens=s4.input_tokens,
+                output_tokens=s4.output_tokens,
+                duration_ms=int((time.monotonic() - t0) * 1000),
+            )
+        )
+        run.notes.extend(_split_assumptions(s4.raw_text))
+        agents_block = s4.data
+    else:
+        # flow_only: skip stages 3 & 4, leave matrix and agent-card sections empty.
+        progress("Skipping Stage 3 (As-Is / To-Be / Impact) — flow_only mode")
+        progress("Skipping Stage 4 (AgentFleet) — flow_only mode")
+        mapping_block = []
+        agents_block = []
 
     # ---- Assemble -------------------------------------------------------
     flow = {
@@ -144,9 +163,12 @@ def run_pipeline(
     }
 
     # ---- Stage 5: Validate + Repair --------------------------------------
-    progress("Stage 5/5 · Validating + repairing…")
+    label = "Stage 5/5" if mode == "full" else "Stage 3/3"
+    progress(f"{label} · Validating + repairing…")
     t0 = time.monotonic()
-    repaired, remaining_errors, repair_result = validate.validate_and_repair(flow)
+    repaired, remaining_errors, repair_result = validate.validate_and_repair(
+        flow, mode=mode,
+    )
     if repair_result is not None:
         run.stages.append(
             StageStat(

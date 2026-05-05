@@ -75,11 +75,16 @@ class handler(BaseHTTPRequestHandler):
         transcript = (payload.get("transcript") or "").strip()
         client = (payload.get("client") or "").strip()
         vertical = (payload.get("vertical") or "").strip() or None
+        mode = (payload.get("mode") or "full").strip().lower()
 
         if not transcript:
             return self._send_text(400, "Field 'transcript' is required.")
         if not client:
             return self._send_text(400, "Field 'client' is required.")
+        if mode not in ("full", "flow_only"):
+            return self._send_text(
+                400, "Field 'mode' must be 'full' or 'flow_only'."
+            )
 
         if not os.environ.get("GEMINI_API_KEY"):
             return self._send_text(
@@ -98,6 +103,7 @@ class handler(BaseHTTPRequestHandler):
                     vertical_hint=vertical,
                     user="vercel-web",
                     runs_root=runs_root,
+                    mode=mode,
                 )
                 pptx_path = next(run_dir.glob("*.pptx"), None)
                 if pptx_path is None:

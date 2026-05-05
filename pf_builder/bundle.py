@@ -74,9 +74,13 @@ def write_bundle(run: RunRecord, runs_root: Path) -> Path:
 
     # 2. deck.pptx — also writes runs_root/<run_id>/flow.json (overwrites the
     # one above with identical content, but render_adapter expects to own it).
-    deck_name = f"{_slug(run.client_name)}_process_flow_{run.started_at:%Y-%m-%d}.pptx"
+    suffix = "_flow_only" if run.mode == "flow_only" else ""
+    deck_name = (
+        f"{_slug(run.client_name)}_process_flow{suffix}"
+        f"_{run.started_at:%Y-%m-%d}.pptx"
+    )
     deck_path = run_dir / deck_name
-    render_adapter.render_to_pptx(run.flow, deck_path)
+    render_adapter.render_to_pptx(run.flow, deck_path, mode=run.mode)
     # render() rewrote run_dir/flow.json — restore the canonical one.
     flow_path.write_text(json.dumps(run.flow, indent=2))
 

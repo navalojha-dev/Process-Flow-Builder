@@ -31,14 +31,35 @@ def _load_render_module():
     return mod
 
 
-def render_to_pptx(flow: dict, out_path: Path) -> Path:
-    """Write `flow` to a temp JSON, call render(), return the PPTX path."""
+def render_to_pptx(flow: dict, out_path: Path, *, mode: str = "full") -> Path:
+    """Write `flow` to a temp JSON, call render(), return the PPTX path.
+
+    `mode`:
+      - "full"      — 3 slides: Process Flow + As-Is/To-Be/Impact + AgentFleet.
+      - "flow_only" — 1 slide: Process Flow only.
+    """
     mod = _load_render_module()
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     flow_json = out_path.parent / "flow.json"
     flow_json.write_text(json.dumps(flow, indent=2))
-    mod.render(flow_json, out_path)
+
+    if mode == "full":
+        mod.render(flow_json, out_path)
+    elif mode == "flow_only":
+        # Build a one-slide deck using just the Process Flow builder. We
+        # don't call mod.render() because it always emits all 3 slides.
+        from pptx import Presentation
+        from pptx.util import Inches
+
+        prs = Presentation()
+        prs.slide_width = Inches(10)
+        prs.slide_height = Inches(5.625)
+        mod.render_process_flow_v2(prs, flow)
+        prs.save(str(out_path))
+        print(f"Wrote {out_path} (flow_only)")
+    else:
+        raise ValueError(f"mode must be 'full' or 'flow_only', got {mode!r}")
     return out_path
 
 
