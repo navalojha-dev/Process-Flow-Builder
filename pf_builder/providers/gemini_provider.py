@@ -42,11 +42,18 @@ class GeminiProvider(Provider):
         max_tokens: int,
         temperature: float,
     ) -> StageResult:
-        # Build generationConfig. Disable thinking on Flash so the budget
-        # goes to visible JSON output rather than silent CoT tokens.
+        # Build generationConfig. Two reliability levers we set unconditionally
+        # for structured-JSON tasks:
+        #   1. responseMimeType="application/json" — forces the model to emit
+        #      valid JSON. Without this, Flash sometimes early-terminates mid
+        #      output and reports finish_reason=STOP (we hit this on Stage 2).
+        #   2. thinkingConfig.thinkingBudget=0 on Flash — so the budget goes
+        #      to visible JSON output rather than silent chain-of-thought
+        #      tokens that count against the same cap.
         gen_cfg: dict = {
             "temperature": temperature,
             "maxOutputTokens": max_tokens,
+            "responseMimeType": "application/json",
         }
         if "flash" in self.model.lower():
             gen_cfg["thinkingConfig"] = {"thinkingBudget": 0}
