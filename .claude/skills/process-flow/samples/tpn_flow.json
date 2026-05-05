@@ -1,0 +1,95 @@
+{
+  "client": {
+    "name": "The Pallet Network",
+    "short": "TPN",
+    "industry_vertical": "Pallet Network · Hub-and-Spoke Freight",
+    "geography": "UK Mainland + NI/ROI (ferry-linked)",
+    "load_type": "Pallets · B2B PTL · single + bulk",
+    "business_model": "Federated network of ~120 member depots feeding a central hub at Swadlincote",
+    "mile_stages": ["first_mile", "middle_mile", "last_mile"]
+  },
+  "title": "Process Flow with Shipsy",
+  "upstream_label": "TPN Connect",
+  "downstream_erp": "TPN Connect",
+  "rows": {
+    "order_creation": {
+      "shipsy_action": "Pallet Booking & Member Depot Allocation"
+    },
+    "first_mile": [
+      "Visibility of collection tasks",
+      "Driver navigation + ePOC capture",
+      "Collection completion at shipper",
+      "Inscan of picked pallets",
+      "Pallet weight & size verification"
+    ],
+    "middle_mile": [
+      "Sorting at Swadlincote hub",
+      "Trunk dock & bay assignment",
+      "Unloading at hub",
+      "Loading into outbound trunk",
+      "Trunk manifest & departure"
+    ],
+    "last_mile": {
+      "planning": "Dynamic delivery planning per depot",
+      "cluster": "Cluster sequencing + guided loading",
+      "tracking_app": "Live tracking in driver app",
+      "break_input": "Driver break + working hours",
+      "navigation": "Navigation and ePOD capture",
+      "tracing": "Tracing details captured in Shipsy sent back to TPN Connect",
+      "third_party": "3rd Party Allocation (NI/ROI ferry partners)"
+    },
+    "customer_communication": [
+      "Configurable stage-wise communication",
+      "Live tracking + ETA",
+      "Sharp predicted delivery window",
+      "Geofence-based delivery validation"
+    ],
+    "finance_ops": [
+      "Shipper rate cards & invoicing (sell-side)",
+      "Member depot rate contracts & payouts (buy-side)",
+      "Reconciliation of POD vs invoice"
+    ],
+    "analytics": [
+      "Real-time trunk + vehicle tracking",
+      "Plan vs actual hub-throughput dashboard",
+      "Partner performance scorecards & alerts"
+    ]
+  },
+  "day_markers": {
+    "order_creation": "Day 1",
+    "first_mile": "Day 1",
+    "middle_mile": "Day 2",
+    "last_mile": "Day 2",
+    "analytics": "Day 3"
+  },
+  "bottom_strip": {
+    "technical_day": "Phase 1",
+    "techdata_day": "Phase 2",
+    "implementation_day": "Phase 3"
+  },
+  "learnings": [
+    "TPN runs at 60% capacity; trucks wait ~4 hours at hub due to manual booking and scheduling",
+    "12 staging areas at Swadlincote with 20-30% sorting delays caused by paper-based manifests",
+    "Member depots use manual pallet scanning, no real-time tracking or partner-level visibility",
+    "Legacy on-prem TPN Connect — no cloud APIs, no integration with modern shipper systems",
+    "Manual postcode-based delivery assignment with 20:00 planning starts and repeated edits",
+    "Revenue leakage from manual rate-card reconciliation and partner payout misalignment",
+    "No alerts on missed NI/ROI ferry connections or misrouted priority pallets"
+  ],
+  "summary": [
+    "Customer portal for pallet booking & label printing (single + bulk + ad-hoc)",
+    "Real-time IoT trunk tracking across depots and Swadlincote hub",
+    "Hub Ops app with guided loading, dock assignment, and pallet verification",
+    "Driver app with cluster sequencing, ePOC/ePOD, and dynamic resequencing",
+    "Automated rate-card invoicing on sell- and buy-side with reconciliation",
+    "BI dashboards for partner performance, hub throughput, and SLA adherence"
+  ],
+  "ai_impact": [
+    "AI address quality enhancement → fewer failed deliveries on the last mile",
+    "Auto-allocation routing engine with 200+ constraints replaces manual postcode planning",
+    "Control Tower agent flags missed scans, ferry cutoffs, and SLA breaches in real time",
+    "Driver gamification scores + leaderboards drive on-time and POD-quality behaviours",
+    "AI dispute resolution shrinks claim cycle times across shippers and member depots",
+    "Settlement agent reconciles invoices vs computed charges and surfaces discrepancies"
+  ]
+}

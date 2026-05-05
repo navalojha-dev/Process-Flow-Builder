@@ -1,0 +1,8 @@
+.venv/
+.DS_Store
+*.pyc
+__pycache__/
+*.egg-info/
+outputs/runs/
+.kb-cache/
+.env

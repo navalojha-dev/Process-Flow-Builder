@@ -1,0 +1,171 @@
+{
+  "aliases": {
+    "alert": "alerts-warning",
+    "allocate-driver": "driver-assignment",
+    "assignment": "driver-assignment",
+    "auto-allocation": "allocation-engine",
+    "bag": "bagging-box",
+    "balance": "load-balancing",
+    "chart": "dashboard-comparison",
+    "chat": "comm-stage",
+    "client": "business-clients",
+    "clipboard": "verify-clipboard",
+    "clock": "predicted-window",
+    "cluster": "cluster-sequence",
+    "comm": "comm-stage",
+    "communication": "comm-stage",
+    "completion": "pickup-check",
+    "container": "loading-truck",
+    "container-loaded": "loading-truck",
+    "control-tower": "alerts-warning",
+    "customer": "business-clients",
+    "dashboard": "dashboard-comparison",
+    "depot-in": "loading-truck",
+    "depot-out": "unloading-truck",
+    "doc-check": "verify-clipboard",
+    "documentation": "verify-clipboard",
+    "driver": "driver-assignment",
+    "driver-app": "mobile-app",
+    "erp": "erp-sync",
+    "eta": "live-tracking",
+    "fleet": "vehicle-tracking",
+    "gear": "erp-sync",
+    "geofence": "geofence-validation",
+    "incident": "alerts-warning",
+    "inscan": "pickup-check",
+    "integration": "erp-sync",
+    "kpi": "dashboard-comparison",
+    "live-tracking-eta": "live-tracking",
+    "load": "loading-truck",
+    "load-plan": "load-balancing",
+    "map-pin": "navigation-epod",
+    "matching": "allocation-engine",
+    "navigation": "navigation-epod",
+    "notification": "comm-stage",
+    "package": "bagging-box",
+    "phone-check": "mobile-app",
+    "phone-gps": "mobile-app",
+    "pickup": "pickup-check",
+    "pin": "navigation-epod",
+    "routing": "allocation-engine",
+    "scan": "pickup-check",
+    "sequence": "cluster-sequence",
+    "shield": "geofence-validation",
+    "shipper": "business-clients",
+    "shipsy": "shipsy-logo-mark",
+    "shipsy-logo": "shipsy-logo-mark",
+    "slot": "predicted-window",
+    "sort": "sorting",
+    "sortation": "sorting",
+    "stops": "cluster-sequence",
+    "sync": "erp-sync",
+    "tasks": "visibility-clipboard",
+    "to": "load-balancing",
+    "tracking": "live-tracking",
+    "trip": "bagging-box",
+    "truck": "loading-truck",
+    "trunk": "vehicle-tracking",
+    "unload": "unloading-truck",
+    "vehicle": "vehicle-tracking",
+    "verification": "verify-clipboard",
+    "verify": "verify-clipboard",
+    "visibility": "visibility-clipboard",
+    "warning": "alerts-warning",
+    "window": "predicted-window",
+    "zone": "sorting"
+  },
+  "icons": {
+    "alerts-warning": {
+      "category": "exception",
+      "file": "alerts-warning.png"
+    },
+    "allocation-engine": {
+      "category": "routing",
+      "file": "allocation-engine.png"
+    },
+    "bagging-box": {
+      "category": "hub",
+      "file": "bagging-box.png"
+    },
+    "business-clients": {
+      "category": "customer",
+      "file": "business-clients.png"
+    },
+    "cluster-sequence": {
+      "category": "routing",
+      "file": "cluster-sequence.png"
+    },
+    "comm-stage": {
+      "category": "communication",
+      "file": "comm-stage.png"
+    },
+    "dashboard-comparison": {
+      "category": "analytics",
+      "file": "dashboard-comparison.png"
+    },
+    "driver-assignment": {
+      "category": "allocation",
+      "file": "driver-assignment.png"
+    },
+    "erp-sync": {
+      "category": "integration",
+      "file": "erp-sync.png"
+    },
+    "geofence-validation": {
+      "category": "validation",
+      "file": "geofence-validation.png"
+    },
+    "live-tracking": {
+      "category": "tracking",
+      "file": "live-tracking.png"
+    },
+    "load-balancing": {
+      "category": "hub",
+      "file": "load-balancing.png"
+    },
+    "loading-truck": {
+      "category": "vehicle",
+      "file": "loading-truck.png"
+    },
+    "mobile-app": {
+      "category": "driver-app",
+      "file": "mobile-app.png"
+    },
+    "navigation-epod": {
+      "category": "navigation",
+      "file": "navigation-epod.png"
+    },
+    "pickup-check": {
+      "category": "pickup",
+      "file": "pickup-check.png"
+    },
+    "predicted-window": {
+      "category": "slot/time",
+      "file": "predicted-window.png"
+    },
+    "shipsy-logo-mark": {
+      "category": "brand",
+      "file": "shipsy-logo-mark.png"
+    },
+    "sorting": {
+      "category": "hub",
+      "file": "sorting.png"
+    },
+    "unloading-truck": {
+      "category": "vehicle",
+      "file": "unloading-truck.png"
+    },
+    "vehicle-tracking": {
+      "category": "vehicle",
+      "file": "vehicle-tracking.png"
+    },
+    "verify-clipboard": {
+      "category": "verification",
+      "file": "verify-clipboard.png"
+    },
+    "visibility-clipboard": {
+      "category": "visibility",
+      "file": "visibility-clipboard.png"
+    }
+  }
+}

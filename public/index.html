@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shipsy Process Flow Builder</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>" />
+  <style>
+    :root {
+      --navy: #1F3A5F;
+      --blue: #1F4E79;
+      --light: #F6F8FB;
+      --border: #D5DCE6;
+      --muted: #6B7280;
+      --green: #599C38;
+      --error: #A93729;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background: var(--light);
+      color: #1A1A1A;
+    }
+    header {
+      background: var(--navy);
+      color: white;
+      padding: 1.4rem 2rem;
+    }
+    header h1 { margin: 0; font-size: 1.4rem; font-weight: 600; }
+    header .sub { font-size: 0.85rem; opacity: 0.75; margin-top: 0.25rem; }
+    main {
+      max-width: 760px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+    }
+    form {
+      background: white;
+      padding: 1.5rem 1.75rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-top: 1rem;
+      margin-bottom: 0.4rem;
+      color: var(--navy);
+    }
+    label:first-child { margin-top: 0; }
+    input[type="text"], select, textarea {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      font: inherit;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: white;
+    }
+    input[type="text"]:focus, select:focus, textarea:focus {
+      outline: 2px solid var(--blue);
+      outline-offset: -1px;
+      border-color: var(--blue);
+    }
+    textarea { min-height: 240px; font-family: ui-monospace, "SFMono-Regular", Menlo, monospace; font-size: 13px; resize: vertical; }
+    .hint { font-size: 0.78rem; color: var(--muted); margin-top: 0.3rem; }
+    button {
+      margin-top: 1.5rem;
+      width: 100%;
+      padding: 0.85rem 1rem;
+      font: inherit;
+      font-weight: 600;
+      background: var(--blue);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    button:hover:not(:disabled) { background: var(--navy); }
+    button:disabled { background: #97A8C0; cursor: not-allowed; }
+    .row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1rem;
+    }
+    .row > div { margin: 0; }
+    #status {
+      margin-top: 1.25rem;
+      padding: 0.85rem 1rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      display: none;
+    }
+    #status.show { display: block; }
+    #status.info    { background: #EAF2FB; color: var(--blue); border: 1px solid #BBD2EB; }
+    #status.success { background: #EAF6E2; color: var(--green); border: 1px solid #C5E0A8; }
+    #status.error   { background: #FBE9E5; color: var(--error); border: 1px solid #ECC0B7; }
+    .progress {
+      display: inline-block;
+      width: 12px; height: 12px;
+      border: 2px solid #BBD2EB;
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-right: 0.5rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    footer {
+      max-width: 760px;
+      margin: 1.5rem auto 3rem;
+      padding: 0 1.5rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📊 Shipsy Process Flow Builder</h1>
+    <div class="sub">Paste a client meeting transcript → get a 3-slide PPTX deck</div>
+  </header>
+
+  <main>
+    <form id="form">
+      <div class="row">
+        <div>
+          <label for="client">Client name</label>
+          <input id="client" name="client" type="text" placeholder="e.g. DP World Logistics" required />
+          <div class="hint">Used verbatim as the deck title.</div>
+        </div>
+        <div>
+          <label for="vertical">Vertical (optional)</label>
+          <select id="vertical" name="vertical">
+            <option value="">— auto-detect —</option>
+            <option value="fmcg-distribution">FMCG distribution</option>
+            <option value="container-drayage">Container drayage</option>
+            <option value="post-and-parcel">Post & parcel</option>
+            <option value="pallet-network">Pallet network</option>
+            <option value="q-commerce">Q-commerce</option>
+            <option value="3pl-cross-border">3PL cross-border</option>
+            <option value="cold-chain">Cold chain</option>
+            <option value="other">Other</option>
+          </select>
+          <div class="hint">Speeds the agent up if you know it.</div>
+        </div>
+      </div>
+
+      <label for="transcript">Meeting transcript</label>
+      <textarea id="transcript" name="transcript" placeholder="Paste raw meeting notes — bullets, half-sentences, multiple meetings concatenated all fine. The agent's first stage cleans it up." required></textarea>
+      <div class="hint">Specifics matter more than polish — tool names, scale numbers, time-window constraints, explicit AI asks.</div>
+
+      <button type="submit" id="submit">Build deck</button>
+      <div id="status"></div>
+    </form>
+  </main>
+
+  <footer>
+    Provider: Gemini 2.5 Flash (free tier) · Build time: ~30-45s · Powered by python-pptx + raw-HTTP Gemini.
+  </footer>
+
+  <script>
+    const form = document.getElementById("form");
+    const submitBtn = document.getElementById("submit");
+    const statusEl = document.getElementById("status");
+
+    function setStatus(kind, html) {
+      statusEl.className = "show " + kind;
+      statusEl.innerHTML = html;
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const client = document.getElementById("client").value.trim();
+      const vertical = document.getElementById("vertical").value;
+      const transcript = document.getElementById("transcript").value.trim();
+      if (!client || !transcript) return;
+
+      submitBtn.disabled = true;
+      const startedAt = Date.now();
+      setStatus("info", `<span class="progress"></span> Building deck — running 5 agent stages, ~30-45s…`);
+
+      try {
+        const resp = await fetch("/api/build", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ client, vertical, transcript }),
+        });
+        if (!resp.ok) {
+          const err = await resp.text();
+          throw new Error(err || `HTTP ${resp.status}`);
+        }
+        const blob = await resp.blob();
+        const filename = (resp.headers.get("X-Deck-Filename") || `${client}_process_flow.pptx`).trim();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = filename; a.click();
+        URL.revokeObjectURL(url);
+
+        const secs = ((Date.now() - startedAt) / 1000).toFixed(1);
+        setStatus("success", `✓ Deck built in ${secs}s — <strong>${filename}</strong> downloaded.`);
+      } catch (err) {
+        setStatus("error", `✗ ${(err && err.message) || err}`);
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

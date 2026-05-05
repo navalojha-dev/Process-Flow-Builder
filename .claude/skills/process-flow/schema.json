@@ -1,0 +1,97 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Shipsy Process Flow definition (v2 — dynamic grammar)",
+  "description": "Inferred client profile + tailored 3-slide content. The process_flow array is the v2 dynamic flow grammar — the agent decides rows, steps, and icons based on the use case.",
+  "type": "object",
+  "required": ["client", "process_flow", "process_mapping", "ai_use_cases"],
+  "properties": {
+    "client": {
+      "type": "object",
+      "required": ["name", "short", "industry_vertical", "geography", "load_type", "business_model", "mile_stages"],
+      "properties": {
+        "name": {"type": "string", "description": "Full client name, e.g. 'The Pallet Network'"},
+        "short": {"type": "string", "description": "Short label used inline in flow text, e.g. 'TPN'"},
+        "industry_vertical": {"type": "string", "description": "e.g. 'CEP / Post & Parcel', 'Pallet Network', 'Container Drayage', 'FMCG cold chain', 'Hyperlocal q-commerce'"},
+        "geography": {"type": "string"},
+        "load_type": {"type": "string"},
+        "business_model": {"type": "string"},
+        "mile_stages": {"type": "array", "items": {"enum": ["first_mile", "middle_mile", "last_mile", "reverse"]}}
+      }
+    },
+    "process_flow": {
+      "type": "object",
+      "description": "Slide 1: dynamic Process Flow with Shipsy. The agent picks rows, step counts, and icons based on the client's use case — no fixed Skynet shape.",
+      "required": ["rows"],
+      "properties": {
+        "title": {"type": "string", "default": "Process Flow with Shipsy"},
+        "rows": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 7,
+          "description": "Functional blocks, top to bottom. Each row is a logical stage in this client's operation. Pick row names that match THEIR vocabulary, not Skynet's.",
+          "items": {
+            "type": "object",
+            "required": ["name", "steps"],
+            "properties": {
+              "name": {"type": "string", "description": "Row label shown in the left sidebar, e.g. 'Booking & Allocation', 'Pickup at Origin Port', 'Cross-Border Transit'"},
+              "day_marker": {"type": "string", "description": "Short tag on the right edge of the row, e.g. 'Day 0', 'Live', 'Phase 1'. Optional."},
+              "steps": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 6,
+                "description": "Steps in this row, left-to-right. Each step has a short label and an icon name. Cap at 6 — wider rows lose readability.",
+                "items": {
+                  "type": "object",
+                  "required": ["label", "icon"],
+                  "properties": {
+                    "label": {"type": "string", "description": "Step label ≤ 45 chars. Multi-line allowed via \\n."},
+                    "icon": {"type": "string", "description": "Icon name from icons/manifest.json — either a direct name (e.g. 'mobile-app') or an alias (e.g. 'container'). Unknown names fall back to a labeled rounded-rect."}
+                  }
+                }
+              }
+            }
+          }
+        },
+        "bottom_strip": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "description": "Three labels for the bottom strip (e.g. ['Off-the-shelf', 'Light Custom', 'Custom Build']). Use to convey phase / scope / implementation tier per the buyer's framing.",
+          "items": {"type": "string"}
+        }
+      }
+    },
+    "process_mapping": {
+      "type": "array",
+      "description": "Slide 2: Process Mapping & Capability Enhancement matrix. 5-7 rows, each with as-is / to-be / impact bullets.",
+      "minItems": 4,
+      "maxItems": 7,
+      "items": {
+        "type": "object",
+        "required": ["process", "as_is", "to_be", "impact"],
+        "properties": {
+          "process": {"type": "string"},
+          "as_is":  {"type": "array", "minItems": 2, "maxItems": 5, "items": {"type": "string"}},
+          "to_be":  {"type": "array", "minItems": 2, "maxItems": 5, "items": {"type": "string"}},
+          "impact": {"type": "array", "minItems": 2, "maxItems": 5, "items": {"type": "string"}}
+        }
+      }
+    },
+    "ai_use_cases": {
+      "type": "array",
+      "description": "Slide 3: AgentFleet cards. Pick the 6 most relevant agents for this client.",
+      "minItems": 4,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["agent", "tagline", "scenario", "phase"],
+        "properties": {
+          "agent":    {"type": "string"},
+          "tagline":  {"type": "string"},
+          "scenario": {"type": "string"},
+          "phase":    {"type": "string", "enum": ["Now", "Phase 2", "Future"]}
+        }
+      }
+    }
+  }
+}
